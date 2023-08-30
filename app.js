@@ -5,19 +5,14 @@ const app = require("express")()
 app.listen(8000)
 
 app.get("/", (req, res) => {
-
     res.send({Message : "Welcome to the index page"})
 } )
 
-
 app.get("/mountains", (req, res) => {
-
     res.send({mountains})
-
 })
 
 app.get("/mountains/:id", (req, res) => {
-
     const id = req.params.id
 
     if (id < 0 || id > mountains.length){
