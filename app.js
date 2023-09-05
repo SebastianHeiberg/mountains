@@ -1,80 +1,107 @@
-const {request, response} = require("express")
+const fs = require("fs");
+const express = require("express");
+const app = express();
+app.use(express.json());
 
-const app = require("express")()
+const PORT = 8000;
+app.listen(PORT, (err) => {
+  if (err) {
+    console.log("Error starting the sever: ", err);
+  }
+  console.log("server is running on port", PORT);
+});
 
-app.listen(8000)
+app.get("/mountains",  async (req, res) => {
+  
+    const mountains = await loadMountains()
+    console.log("this is my mountains:",mountains)
+    res.status(200);
+    return res.send({ data: mountains});
+  });
 
-app.get("/", (req, res) => {
-    res.send({Message : "Welcome to the index page"})
-} )
-
-app.get("/mountains", (req, res) => {
-    res.send({mountains})
-})
 
 app.get("/mountains/:id", (req, res) => {
-    const id = req.params.id
+  const pathVarMountainId = Number(req.params.id);
 
-    if (id < 0 || id > mountains.length){
-        res.send({Message : "No mountain of that id exists"})
-    } else {
-        const mountain = mountains[id]
-        res.send({mountain})
-    }   
+  if (!pathVarMountainId) {
+    res.send({ error: "the mountain id must be a number" });
+  }
+
+  fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
+    if (err) {
+      res.status(500);
+      return res.json(`Error reading file`);
+    }
+    
+    const mountains = JSON.parse(data).mountains
+    const foundMountain = mountains.find(
+      (mountain) => mountain.id === Number(req.params.id)
+    );
+
+    res.status(200);
+    return res.send( { data: foundMountain});
+
+  });
+
+});
+
+//post
+app.post("/mountains", (req, res) => {
+  
+  const mountains = [];
+
+ 
+  
+  console.log(req.body.name)
+  res.send(req.body)
 })
 
 
+//patch
 
-const mountains = [
-    {
-      "name": "Mount Everest",
-      "height": 8848,
-      "continent": "Asia"
-    },
-    {
-      "name": "Aconcagua",
-      "height": 6962,
-      "continent": "South America"
-    },
-    {
-      "name": "Kilimanjaro",
-      "height": 5895,
-      "continent": "Africa"
-    },
-    {
-      "name": "Denali",
-      "height": 6190,
-      "continent": "North America"
-    },
-    {
-      "name": "Mount Elbrus",
-      "height": 5642,
-      "continent": "Europe"
-    },
-    {
-      "name": "Mount Fuji",
-      "height": 3776,
-      "continent": "Asia"
-    },
-    {
-      "name": "Mount McKinley",
-      "height": 6194,
-      "continent": "North America"
-    },
-    {
-      "name": "Mont Blanc",
-      "height": 4808,
-      "continent": "Europe"
-    },
-    {
-      "name": "Andes Mountains",
-      "height": 6960,
-      "continent": "South America"
-    },
-    {
-      "name": "Himalayas",
-      "height": 8500,
-      "continent": "Asia"
+//delete
+app.delete("/mountains/:id", (req, res) => {
+  const pathVarMountainId = Number(req.params.id);
+
+  if (!pathVarMountainId) {
+    res.send({ error: "the mountain id must be a number" });
+  }
+
+  fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
+    if (err) {
+      res.status(500);
+      return res.json(`Error reading file`);
     }
-  ]
-  
+    
+    const mountains = JSON.parse(data).mountains
+    const remainingMountains = mountains.filter(
+      (mountain) => mountain.id !== Number(req.params.id)
+    );
+
+
+    fs.writeFile(`data/mountains.json`, JSON.stringify(remainingMountains), (err) => {
+
+      if (err) {
+      res.status(500);
+      return res.json(`Error writing file`);
+    }}
+    );
+
+    res.status(200);
+    return res.send( { data: 'Mountain deleted'});
+
+  });
+
+});
+
+
+ function loadMountains () {
+  fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
+    if (err) {
+      res.status(500);
+      return res.json(`Error reading file`);
+    }
+    return JSON.parse(data) })
+}
+
+
