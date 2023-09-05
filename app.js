@@ -13,11 +13,18 @@ app.listen(PORT, (err) => {
 
 app.get("/mountains",  async (req, res) => {
   
-    const mountains = await loadMountains()
-    console.log("this is my mountains:",mountains)
+  fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
+    if (err) {
+      res.status(500);
+      return res.json(`Error reading file`);
+    }
+
+    const mountains = JSON.parse(data).mountains
     res.status(200);
     return res.send({ data: mountains});
+
   });
+})
 
 
 app.get("/mountains/:id", (req, res) => {
@@ -67,19 +74,22 @@ app.delete("/mountains/:id", (req, res) => {
     res.send({ error: "the mountain id must be a number" });
   }
 
+  //Reads all the mountains
   fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
     if (err) {
       res.status(500);
       return res.json(`Error reading file`);
     }
     
-    const mountains = JSON.parse(data).mountains
-    const remainingMountains = mountains.filter(
+    //filter the chosen mountain out
+    const loadMountains = JSON.parse(data).mountains
+    const listRemainingMountains = loadMountains.filter(
       (mountain) => mountain.id !== Number(req.params.id)
     );
+    const saveMountains = {mountains: listRemainingMountains}
 
-
-    fs.writeFile(`data/mountains.json`, JSON.stringify(remainingMountains), (err) => {
+      //Saves all the mountains
+    fs.writeFile(`data/mountains.json`, JSON.stringify(saveMountains), (err) => {
 
       if (err) {
       res.status(500);
@@ -87,21 +97,14 @@ app.delete("/mountains/:id", (req, res) => {
     }}
     );
 
+    //return all OK, and a message
     res.status(200);
-    return res.send( { data: 'Mountain deleted'});
+    return res.send( { data: 'Deleted Mountain with id: ' + pathVarMountainId});
 
   });
 
 });
 
 
- function loadMountains () {
-  fs.readFile(`data/mountains.json`, "utf-8", (err, data) => {
-    if (err) {
-      res.status(500);
-      return res.json(`Error reading file`);
-    }
-    return JSON.parse(data) })
-}
 
 
